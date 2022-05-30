@@ -48,3 +48,35 @@ app.get("/todos/:id", async (req, res) => {
     console.error(err.message);
   }
 });
+
+app.patch("/todos/:id/add-view", async (req, res) => {
+  try {
+    const { id } = req.params;
+    await pool.query("UPDATE todo SET views=views+1 WHERE todo_id=$1", [id]);
+    res.send("Update successful");
+    //    res.statusCode(200).send("Update successful");
+  } catch (err) {
+    console.error(err.message);
+    res.statusCode(500).send("Update failed");
+  }
+});
+
+app.patch("/todos/:id/toggle-completed", async (req, res) => {
+  console.log("res:", res);
+  //console.log("req:", req);
+  try {
+    const result = await pool.query(
+      "UPDATE todo SET completed=NOT completed WHERE todo_id=$1",
+      [req.params.id]
+    );
+    console.log("result from update:", result.rows);
+    const todo = await pool.query("SELECT * FROM todo WHERE todo_id = $1", [
+      req.params.id,
+    ]);
+    res.json(todo.rows[0]);
+  } catch (error) {
+    console.log(error.stack);
+    console.error(error.message);
+    res.statusCode(500).send("Update failed");
+  }
+});
